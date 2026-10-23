@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedai Kek Suku Kata</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+            background: #20040e;
+            overflow-x: hidden;
+            min-height: 100vh;
+            user-select: none;
+            position: relative;
+        }
+
+        /* Ambient Desserts Floating in Background */
+        .bg-floating {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-item {
+            position: absolute;
+            animation: floatUp 12s infinite linear;
+            opacity: 0.18;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(105vh) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            10% { opacity: 0.25; }
+            90% { opacity: 0.25; }
+            100% {
+                transform: translateY(-10vh) rotate(360deg) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        /* Bakery Storefront Awning (Kanopi Jalur Merah-Putih) */
+        .bakery-awning {
+            background: repeating-linear-gradient(
+                -45deg,
+                #b91c1c,
+                #b91c1c 20px,
+                #ffffff 20px,
+                #ffffff 40px
+            );
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Header Banner Maroon */
+        .header-maroon {
+            background-color: #6b0d2b;
+        }
+
+        /* Main Card Container (Putih dengan Glow Merah Jambu) */
+        .main-card {
+            background-color: #ffffff;
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.6), 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 4px solid #f43f5e;
+        }
+
+        /* 3D Brown/Orange Syllable Buttons Exact Match to Reference Image */
+        .syllable-btn-3d {
+            background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+            border: 3px solid #fef3c7;
+            box-shadow: 0 8px 0px #78350f, 0 10px 15px rgba(0,0,0,0.4);
+            color: #ffffff;
+            text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .syllable-btn-3d:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0px #78350f, 0 14px 20px rgba(0,0,0,0.45);
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .syllable-btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 3px 0px #78350f, 0 5px 8px rgba(0,0,0,0.3);
+        }
+
+        .syllable-btn-3d.selected {
+            background: linear-gradient(180deg, #be123c 0%, #881337 100%) !important;
+            box-shadow: 0 3px 0px #4c0519, 0 4px 8px rgba(0,0,0,0.3);
+            transform: translateY(4px);
+            border-color: #fef08a;
+        }
+
+        /* Expanded Coin Catching Game Canvas Area */
+        #coinCanvas {
+            background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+            border: 3px dashed #f43f5e;
+            border-radius: 1.5rem;
+            touch-action: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center items-center p-2 sm:p-4 text-slate-800 relative">
+
+    <!-- FLOATING BAKERY ITEMS BACKGROUND -->
+    <div class="bg-floating" id="floatingBg"></div>
+
+    <!-- MAIN GAME CONTAINER -->
+    <div class="w-full max-w-xl z-10 my-auto">
+        
+        <!-- 1. KANOPI JALUR MERAH-PUTIH (AWNING) -->
+        <div class="w-full bakery-awning h-8 rounded-t-3xl border-t-4 border-l-4 border-r-4 border-rose-950"></div>
+
+        <!-- 2. HEADER BANNER MAROON -->
+        <header class="header-maroon text-center p-4 border-x-4 border-b-4 border-rose-950 shadow-2xl relative">
+            <div class="flex items-center justify-center gap-3">
+                <span class="text-4xl filter drop-shadow-md animate-bounce">👨‍🍳</span>
+                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-5 py-2 rounded-full shadow-lg border-2 border-amber-200">
+                    <i class="fa-solid fa-store text-amber-200 text-lg"></i>
+                    <h1 class="text-2xl sm:text-3xl font-black tracking-wide drop-shadow">KEDAI KEK SUKU KATA</h1>
+                </div>
+            </div>
+            <p class="text-pink-200 font-bold text-xs sm:text-sm mt-2 drop-shadow flex items-center justify-center gap-1">
+                <i class="fa-solid fa-heart text-rose-400"></i>
+                <span>Mari beli kek yang comel dan sedap di kedai Chef! 🧁🛒</span>
+            </p>
+        </header>
+
+        <!-- 3. MAIN CARD CONTAINER (WHITE WITH PINK GLOW) -->
+        <main class="main-card rounded-b-3xl p-4 sm:p-6 relative">
+            
+            <!-- SKRIN PEMBUKA DIALOG CHEF (WELCOME SCREEN) -->
+            <div id="welcomeScreen" class="flex flex-col items-center justify-center text-center p-4">
+                <div class="w-24 h-24 bg-rose-100 border-4 border-rose-400 rounded-full flex items-center justify-center text-5xl mb-3 shadow-lg animate-bounce">
+                    👨‍🍳
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-rose-800 mb-2">Selamat Datang ke Kedai Kek!</h2>
+                
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-5 text-slate-700 font-bold text-xs sm:text-sm leading-relaxed shadow-inner">
+                    <p class="mb-2">✨ Kumpul <span class="text-rose-600 font-black">RM8</span> untuk beli kek pilihan anda di pusingan akhir!</p>
+                    <p>🪙 Tangkap <span class="text-amber-600 font-black">1 syiling RM1</span> pada setiap pusingan sebelum susun suku kata ya!</p>
+                </div>
+
+                <!-- ALUR BARU: LANGKAH 1 - BUTANG DENGAR ARAHAN -->
+                <div id="greetingAudioStep" class="w-full flex flex-col items-center gap-3">
+                    <button id="btnPlayGreeting" onclick="handleListenInstruction()" class="w-full bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-black py-3.5 rounded-2xl shadow-lg active:scale-95 text-base sm:text-lg border-2 border-white transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-volume-high text-amber-200 animate-pulse text-xl"></i> 
+                        <span>🔊 Tekan & Dengar Arahan Dahulu</span>
+                    </button>
+                    <p id="audioPlayingStatus" class="hidden text-xs text-rose-600 font-bold animate-pulse flex items-center gap-1">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Sedang memainkan arahan suara Chef...
+                    </p>
+                </div>
+
+                <!-- ALUR BARU: LANGKAH 2 - BUTANG BERMULA SEKARANG (TERSEMBUNYI SEHINGGA AUDIO DITEKAN/SELESAI) -->
+                <div id="startGameStep" class="hidden w-full mt-3">
+                    <button id="btnStartGame" onclick="handleStartClick()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black py-3.5 rounded-2xl shadow-lg active:scale-95 text-base sm:text-lg border-2 border-white transition flex items-center justify-center gap-2 cursor-pointer animate-bounce">
+                        <i class="fa-solid fa-play text-amber-200"></i> 
+                        <span>Bermula Sekarang! 🚀</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- COIN CATCHING MINI GAME SCREEN (EXPANDED AREA) -->
+            <div id="coinGameScreen" class="hidden flex-col items-center justify-center text-center p-3">
+                <div class="bg-gradient-to-r from-amber-500 to-rose-600 text-white font-black px-4 py-2 rounded-2xl shadow-md border-2 border-white mb-2 text-sm sm:text-base">
+                    🪙 Tangkap 1 Duit Syiling RM1! (Round <span id="coinRoundNum">1</span>/8)
+                </div>
+                <p class="text-xs sm:text-sm text-slate-600 font-bold mb-3">
+                    Gerakkan tetikus (cursor) dalam ruang di bawah untuk menggerakkan mangkuk! 🥣
+                </p>
+
+                <!-- Expanded Interactive Canvas for Catching Coin -->
+                <div class="relative w-full max-w-md flex justify-center mb-3">
+                    <canvas id="coinCanvas" width="460" height="280" class="shadow-inner"></canvas>
+                </div>
+
+                <!-- Touch Controls for Mobile/Screen Users -->
+                <div class="flex justify-center gap-4 w-full max-w-xs">
+                    <button id="btnLeft" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-2xl shadow-lg active:scale-95 text-lg">
+                        ⬅️ Kiri
+                    </button>
+                    <button id="btnRight" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-2xl shadow-lg active:scale-95 text-lg">
+                        Kanan ➡️
+                    </button>
+                </div>
+            </div>
+
+            <!-- SYLLABLE MATCHING GAME SECTION -->
+            <div id="syllableGameScreen" class="hidden">
+                
+                <!-- TOP CONTROLS: ROUND & RESTART -->
+                <div class="flex justify-between items-center mb-4 pb-3 border-b-2 border-pink-100">
+                    <div class="bg-gradient-to-r from-rose-600 to-pink-600 text-white font-black px-4 py-2 rounded-2xl shadow-md border-2 border-amber-300 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-utensils text-amber-300"></i>
+                        <span>Pusingan <span id="roundNum" class="text-amber-300 text-xl font-black">1</span> / 8</span>
+                    </div>
+
+                    <!-- Total Money Collected Badge -->
+                    <div class="bg-amber-100 border-2 border-amber-400 text-amber-900 font-black px-3 py-1.5 rounded-2xl text-xs sm:text-sm flex items-center gap-1 shadow-sm">
+                        <span>🪙 Tabung: <span id="totalCoinText" class="text-rose-600 font-extrabold text-base">RM0</span></span>
+                    </div>
+
+                    <button onclick="resetGame()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-2xl shadow-md active:scale-95 text-xs sm:text-sm flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Mula Semula</span>
+                    </button>
+                </div>
+
+                <!-- ROUND INDICATORS BAR (P1 TO P8) -->
+                <div class="bg-pink-100/80 p-2 rounded-2xl border border-pink-200 mb-5 flex justify-center items-center gap-1.5 shadow-inner" id="roundDotsBar">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- PREVIEW BOX FOR FORMED WORD -->
+                <div class="bg-amber-50/90 border-2 border-dashed border-amber-300 rounded-2xl p-4 mb-5 text-center shadow-inner min-h-[85px] flex flex-col justify-center items-center">
+                    <span class="text-xs font-black uppercase tracking-widest text-amber-800 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> PERKATAAN DIBENTUK:
+                    </span>
+                    <div id="selectedContainer" class="flex gap-2 justify-center items-center h-10">
+                        <span class="text-rose-400 italic font-bold text-xs sm:text-sm">Sila tekan suku kata di bawah...</span>
+                    </div>
+                </div>
+
+                <!-- SYLLABLE BUTTONS GRID WITH DYNAMIC INSTRUCTION BADGE -->
+                <div class="mb-5">
+                    <div class="flex justify-center mb-3">
+                        <span id="syllableRuleBadge" class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs sm:text-sm font-black px-4 py-1.5 rounded-full shadow border-2 border-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye text-amber-200"></i> <span id="syllableRuleText">Bina 2 perkataan (2 suku kata)</span>
+                        </span>
+                    </div>
+                    
+                    <p class="text-center font-black text-slate-800 mb-3 text-xs sm:text-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-hand-pointer text-pink-600"></i> Tekan & Padankan Suku Kata:
+                    </p>
+                    <div id="syllablesGrid" class="grid grid-cols-2 gap-3 max-w-xs sm:max-w-md mx-auto">
+                        <!-- Syllable 3D buttons generated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- FOUND WORDS LIST FOR CURRENT ROUND -->
+                <div class="pt-3 border-t-2 border-pink-100 text-center">
+                    <h3 class="text-xs font-black text-rose-800 uppercase tracking-wider mb-2 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i> PERKATAAN DITEMUI PUSINGAN INI:
+                    </h3>
+                    <div id="foundWordsList" class="flex justify-center gap-2 min-h-[40px] items-center flex-wrap">
+                        <!-- Found words list -->
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- CLUE MODAL (PICTURE ONLY) -->
+    <div id="clueModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border-4 border-amber-400 rounded-3xl p-5 max-w-xs w-full text-center shadow-2xl relative">
+            <div class="text-amber-500 text-2xl font-black mb-1 flex items-center justify-center gap-1">
+                <span>💡 Petunjuk Gambar!</span>
+            </div>
+            <p class="text-xs text-slate-600 font-bold mb-3">Lihat gambar ini & eja semula ya!</p>
+            
+            <div class="w-40 h-40 mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center mb-4">
+                <img id="clueImg" src="" alt="Clue" class="w-full h-full object-cover">
+            </div>
+
+            <button onclick="closeClueModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 rounded-2xl shadow-md text-sm border-2 border-white">
+                Faham! Sedia Eja 🧁
+            </button>
+        </div>
+    </div>
+
+    <!-- BAKERY STORE SHOP (FINAL SCREEN AFTER ROUND 8) -->
+    <div id="cakeShopModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-amber-50 via-white to-pink-100 border-4 border-amber-400 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl relative">
+            <div class="text-5xl mb-2">🎉🎂👨‍🍳</div>
+            <h2 class="text-2xl sm:text-3xl font-black text-rose-600 mb-1">TAHNIAH! Anda Ada RM8!</h2>
+            <p class="text-slate-700 font-extrabold text-xs sm:text-sm mb-4">
+                Sila pilih 1 kek pilihan anda untuk dibeli menggunakan tabung RM8!
+            </p>
+
+            <!-- 3 CAKE OPTIONS -->
+            <div class="grid grid-cols-3 gap-3 mb-5">
+                <button onclick="buyCake('Kek Cawan Pelangi 🌈')" class="bg-white border-2 border-pink-300 hover:border-rose-500 p-3 rounded-2xl shadow flex flex-col items-center hover:scale-105 transition active:scale-95">
+                    <span class="text-4xl mb-1">🧁</span>
+                    <span class="text-xs font-black text-slate-800">Pelangi</span>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">RM8</span>
+                </button>
+
+                <button onclick="buyCake('Kek Cawan Coklat 🍫')" class="bg-white border-2 border-pink-300 hover:border-rose-500 p-3 rounded-2xl shadow flex flex-col items-center hover:scale-105 transition active:scale-95">
+                    <span class="text-4xl mb-1">🍫</span>
+                    <span class="text-xs font-black text-slate-800">Coklat</span>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">RM8</span>
+                </button>
+
+                <button onclick="buyCake('Kek Cawan Strawberi 🍓')" class="bg-white border-2 border-pink-300 hover:border-rose-500 p-3 rounded-2xl shadow flex flex-col items-center hover:scale-105 transition active:scale-95">
+                    <span class="text-4xl mb-1">🍓</span>
+                    <span class="text-xs font-black text-slate-800">Strawberi</span>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">RM8</span>
+                </button>
+            </div>
+
+            <div id="buySuccessMessage" class="hidden bg-emerald-100 border-2 border-emerald-400 text-emerald-900 p-3 rounded-2xl font-bold text-xs mb-4"></div>
+
+            <button onclick="resetGame(); hideCakeShopModal();" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-3.5 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 text-base flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> Main Semula Dari Awal
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* ====================================================================
+           1. ELEVENLABS AUDIO GREETING PLAYER (EXPLICIT USER CLICK TRIGGER)
+        ==================================================================== */
+        const welcomeSpeechUrl = "https://files.catbox.moe/vm6uyg.mp3";
+        const welcomeAudio = new Audio(welcomeSpeechUrl);
+        welcomeAudio.crossOrigin = "anonymous";
+
+        // Apabila audio selesai dimainkan, tunjukkan butang 'Bermula Sekarang'
+        welcomeAudio.onended = function() {
+            document.getElementById('audioPlayingStatus').classList.add('hidden');
+            document.getElementById('startGameStep').classList.remove('hidden');
+        };
+
+        function handleListenInstruction() {
+            playSfx('click');
+            const statusEl = document.getElementById('audioPlayingStatus');
+            const startStep = document.getElementById('startGameStep');
+            
+            statusEl.classList.remove('hidden');
+
+            welcomeAudio.currentTime = 0;
+            welcomeAudio.play().then(() => {
+                // Tunjukkan terus butang bermula sebagai persediaan
+                startStep.classList.remove('hidden');
+            }).catch(error => {
+                console.log("Audio play error:", error);
+                // Jika audio gagal dimainkan, benarkan murid terus bermula
+                statusEl.classList.add('hidden');
+                startStep.classList.remove('hidden');
+            });
+        }
+
+        function handleStartClick() {
+            playSfx('click');
+            // Hentikan audio jika masih berjalan dan terus mulakan pusingan pertama
+            welcomeAudio.pause();
+            startFirstRound();
+        }
+
+        /* ====================================================================
+           2. GAME DATA (8 ROUNDS TOTAL)
+        ==================================================================== */
+        const roundsData = [
+            {
+                round: 1,
+                targets: ["susu", "biskut"],
+                syllables: [
+                    { id: 1, text: "su" },
+                    { id: 2, text: "su" },
+                    { id: 3, text: "bis" },
+                    { id: 4, text: "kut" }
+                ],
+                images: {
+                    susu: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80",
+                    biskut: "https://resepichenom.com/_next/image?url=https%3A%2F%2Fcdn.resepichenom.com%2Fimages%2Frecipes%2F12918959-5ee3-4a98-9398-e43c5faa0cca-b000d02d-409d-4607-a3a2-e3e043869274-enhanced-1772186416079-eefq-1024.webp&w=3840&q=75"
+                }
+            },
+            {
+                round: 2,
+                targets: ["telur", "balang"],
+                syllables: [
+                    { id: 1, text: "te" },
+                    { id: 2, text: "lur" },
+                    { id: 3, text: "ba" },
+                    { id: 4, text: "lang" }
+                ],
+                images: {
+                    telur: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=400&q=80",
+                    balang: "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTIRiYyg-66gAT_7Kloj9FkU6OwQPJckHkMaVW_B9mhFnJnkIqzEodd47K_DH5mn6KAqFHy4GOmcPQ2vR6c1TZh_DojqHGVauZNbga2va0V5jkb8LuuHafMeg&usqp=CAc"
+                }
+            },
+            {
+                round: 3,
+                targets: ["mangkuk", "susu"],
+                syllables: [
+                    { id: 1, text: "mang" },
+                    { id: 2, text: "kuk" },
+                    { id: 3, text: "su" },
+                    { id: 4, text: "su" }
+                ],
+                images: {
+                    mangkuk: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGPMqLSwNJCxswT9NB-rAiDtumEPz8qRLHDIV7tAG5xw&s=10",
+                    susu: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80"
+                }
+            },
+            {
+                round: 4,
+                targets: ["kerusi"],
+                syllables: [
+                    { id: 1, text: "ke" },
+                    { id: 2, text: "ru" },
+                    { id: 3, text: "si" }
+                ],
+                images: {
+                    kerusi: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5Hzkaj1VXAJOMA0BvYYBzPO3mu3yQ2orqlgACDjhFYw&s=10"
+                }
+            },
+            {
+                round: 5,
+                targets: ["penjual"],
+                syllables: [
+                    { id: 1, text: "pen" },
+                    { id: 2, text: "ju" },
+                    { id: 3, text: "al" }
+                ],
+                images: {
+                    penjual: "https://www.durhamdigitalservices.ca/images/demo-bakery.jpg"
+                }
+            },
+            {
+                round: 6,
+                targets: ["penimbang"],
+                syllables: [
+                    { id: 1, text: "pe" },
+                    { id: 2, text: "nim" },
+                    { id: 3, text: "bang" }
+                ],
+                images: {
+                    penimbang: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuSyk65IUn6Yj-fhsh71ABpaS3qvyZtLSerY_feu72_g&s=10"
+                }
+            },
+            {
+                round: 7,
+                targets: ["hiasan"],
+                syllables: [
+                    { id: 1, text: "hi" },
+                    { id: 2, text: "a" },
+                    { id: 3, text: "san" }
+                ],
+                images: {
+                    hiasan: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbwxssHcc-y-z7nqpR0Z7UuOBwBdchyBrhuRjzQ9mlZQ&s=10"
+                }
+            },
+            {
+                round: 8,
+                targets: ["penyepit"],
+                syllables: [
+                    { id: 1, text: "pe" },
+                    { id: 2, text: "nye" },
+                    { id: 3, text: "pit" }
+                ],
+                images: {
+                    penyepit: "https://my-test-11.slatic.net/p/3f55887569887c48d350f20c308c205c.jpg"
+                }
+            }
+        ];
+
+        /* Game State Variables */
+        let currentRoundIdx = 0;
+        let selectedSyllables = [];
+        let currentShuffledSyls = [];
+        let roundFoundWords = [];
+        let usedSyllableIds = [];
+        let wrongAttemptsCount = 0;
+        let totalCoinsCollected = 0;
+
+        /* Coin Game Variables */
+        let canvas, ctx;
+        let bowlX = 190;
+        let coinX = 230, coinY = 0, coinSpeed = 3;
+        let coinAnimId = null;
+
+        /* ====================================================================
+           3. SOUND EFFECTS SYNTHESIZER
+        ==================================================================== */
+        function playSfx(type) {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const audioCtx = new AudioCtx();
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+
+                } else if (type === 'coinCatch') {
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc1.type = 'sine';
+                    osc2.type = 'triangle';
+                    osc1.frequency.setValueAtTime(987.77, now);
+                    osc1.frequency.exponentialRampToValueAtTime(1318.51, now + 0.18);
+                    osc2.frequency.setValueAtTime(1975.53, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.2);
+                    osc2.stop(now + 0.2);
+
+                } else if (type === 'correctWord') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.25);
+                    });
+
+                } else if (type === 'wrongWord') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+
+                } else if (type === 'pop') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(900, now + 0.06);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                }
+            } catch(e){}
+        }
+
+        /* Shuffle Utility */
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        /* ANIMATED FLOATING BAKERY BACKGROUND */
+        function initFloatingBackground() {
+            const bgContainer = document.getElementById('floatingBg');
+            const items = [
+                { icon: 'fa-cake-candles', color: '#f43f5e' },
+                { icon: 'fa-cookie-bite', color: '#fbbf24' },
+                { icon: 'fa-ice-cream', color: '#ec4899' },
+                { icon: 'fa-wheat-awn', color: '#f59e0b' },
+                { icon: 'fa-spoon', color: '#38bdf8' },
+                { icon: 'fa-mug-hot', color: '#a7f3d0' }
+            ];
+            
+            for (let i = 0; i < 16; i++) {
+                const el = document.createElement('i');
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                
+                el.className = `fa-solid ${randomItem.icon} floating-item`;
+                el.style.color = randomItem.color;
+                el.style.left = `${Math.random() * 92}%`;
+                el.style.animationDelay = `${Math.random() * 10}s`;
+                el.style.animationDuration = `${9 + Math.random() * 8}s`;
+                el.style.fontSize = `${1.8 + Math.random() * 1.6}rem`;
+
+                bgContainer.appendChild(el);
+            }
+        }
+
+        function startFirstRound() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            initCoinGame();
+        }
+
+        /* ====================================================================
+           4. EXPANDED COIN CATCHING MINI GAME WITH CURSOR MOVEMENT
+        ==================================================================== */
+        function initCoinGame() {
+            document.getElementById('coinGameScreen').classList.remove('hidden');
+            document.getElementById('coinGameScreen').style.display = 'flex';
+            document.getElementById('syllableGameScreen').classList.add('hidden');
+            document.getElementById('coinRoundNum').innerText = currentRoundIdx + 1;
+
+            canvas = document.getElementById('coinCanvas');
+            ctx = canvas.getContext('2d');
+
+            bowlX = canvas.width / 2 - 35;
+            coinX = Math.random() * (canvas.width - 60) + 30;
+            coinY = 10;
+            coinSpeed = 2.8 + Math.random() * 1.5;
+
+            canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                bowlX = Math.max(0, Math.min(canvas.width - 70, mouseX - 35));
+            };
+
+            canvas.ontouchmove = function(e) {
+                if (e.touches.length > 0) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touchX = e.touches[0].clientX - rect.left;
+                    bowlX = Math.max(0, Math.min(canvas.width - 70, touchX - 35));
+                }
+            };
+
+            if (coinAnimId) cancelAnimationFrame(coinAnimId);
+            animateCoinGame();
+        }
+
+        function animateCoinGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Falling Coin (RM1)
+            ctx.beginPath();
+            ctx.arc(coinX, coinY, 18, 0, Math.PI * 2);
+            ctx.fillStyle = "#f59e0b";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#b45309";
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px Fredoka";
+            ctx.textAlign = "center";
+            ctx.fillText("RM1", coinX, coinY + 4);
+
+            // Draw Chef Bowl
+            ctx.fillStyle = "#f43f5e";
+            ctx.beginPath();
+            ctx.arc(bowlX + 35, 245, 35, 0, Math.PI);
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#be123c";
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffe4e6";
+            ctx.fillRect(bowlX, 240, 70, 6);
+
+            coinY += coinSpeed;
+
+            if (coinY >= 225 && coinY <= 260 && coinX >= bowlX - 5 && coinX <= bowlX + 75) {
+                playSfx('coinCatch');
+                totalCoinsCollected++;
+                document.getElementById('totalCoinText').innerText = `RM${totalCoinsCollected}`;
+                setTimeout(startSyllableMatchingRound, 300);
+                return;
+            }
+
+            if (coinY > canvas.height) {
+                coinY = 0;
+                coinX = Math.random() * (canvas.width - 60) + 30;
+            }
+
+            coinAnimId = requestAnimationFrame(animateCoinGame);
+        }
+
+        document.getElementById('btnLeft').onclick = () => { playSfx('click'); bowlX = Math.max(0, bowlX - 45); };
+        document.getElementById('btnRight').onclick = () => { playSfx('click'); bowlX = Math.min(canvas.width - 70, bowlX + 45); };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') bowlX = Math.max(0, bowlX - 30);
+            if (e.key === 'ArrowRight') bowlX = Math.min(canvas.width - 70, bowlX + 30);
+        });
+
+        /* ====================================================================
+           5. SYLLABLE MATCHING GAME LOGIC
+        ==================================================================== */
+        function startSyllableMatchingRound() {
+            document.getElementById('coinGameScreen').classList.add('hidden');
+            document.getElementById('coinGameScreen').style.display = 'none';
+            document.getElementById('syllableGameScreen').classList.remove('hidden');
+
+            const currentData = roundsData[currentRoundIdx];
+
+            selectedSyllables = [];
+            roundFoundWords = [];
+            usedSyllableIds = [];
+            wrongAttemptsCount = 0;
+
+            document.getElementById('roundNum').innerText = currentData.round;
+
+            const ruleText = document.getElementById('syllableRuleText');
+            if (currentRoundIdx < 3) {
+                ruleText.innerText = "Bina 2 perkataan (2 suku kata)";
+            } else {
+                ruleText.innerText = "Bina 1 perkataan (3 suku kata)";
+            }
+
+            renderRoundDotsBar();
+            currentShuffledSyls = shuffleArray(currentData.syllables);
+
+            renderSyllablesGrid();
+            renderSelectedPreview();
+            renderFoundWords();
+        }
+
+        function renderRoundDotsBar() {
+            const bar = document.getElementById('roundDotsBar');
+            bar.innerHTML = '';
+
+            for (let i = 0; i < roundsData.length; i++) {
+                const dot = document.createElement('div');
+                if (i === currentRoundIdx) {
+                    dot.className = 'bg-rose-600 text-amber-300 font-extrabold px-3 py-1 rounded-full text-xs shadow border border-amber-300 animate-pulse';
+                    dot.innerText = `P${i+1}`;
+                } else if (i < currentRoundIdx) {
+                    dot.className = 'w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shadow';
+                    dot.innerText = `✓`;
+                } else {
+                    dot.className = 'w-7 h-7 rounded-full bg-white text-slate-400 flex items-center justify-center font-bold text-xs border border-pink-200';
+                    dot.innerText = `${i+1}`;
+                }
+                bar.appendChild(dot);
+            }
+        }
+
+        function renderSyllablesGrid() {
+            const grid = document.getElementById('syllablesGrid');
+            grid.innerHTML = '';
+
+            if (currentShuffledSyls.length === 4) {
+                grid.className = "grid grid-cols-2 gap-3 max-w-xs sm:max-w-md mx-auto";
+            } else {
+                grid.className = "grid grid-cols-3 gap-2.5 max-w-xs sm:max-w-md mx-auto";
+            }
+
+            currentShuffledSyls.forEach((syl) => {
+                const btn = document.createElement('button');
+                
+                const isSelected = selectedSyllables.some(s => s.id === syl.id);
+                const isUsed = usedSyllableIds.includes(syl.id);
+
+                btn.className = `syllable-btn-3d py-3.5 px-3 rounded-2xl font-black text-2xl tracking-wide ${
+                    isSelected ? 'selected' : ''
+                } ${isUsed ? 'opacity-20 cursor-not-allowed scale-90' : ''}`;
+                
+                btn.innerText = syl.text;
+                btn.disabled = isUsed;
+
+                btn.onclick = () => handleSyllableClick(syl);
+
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleSyllableClick(syl) {
+            playSfx('pop');
+
+            const existingIdx = selectedSyllables.findIndex(s => s.id === syl.id);
+            if (existingIdx !== -1) {
+                selectedSyllables.splice(existingIdx, 1);
+            } else {
+                const reqLength = (roundsData[currentRoundIdx].targets[0] === "kerusi" || 
+                                   roundsData[currentRoundIdx].targets[0] === "penjual" || 
+                                   roundsData[currentRoundIdx].targets[0] === "penimbang" || 
+                                   roundsData[currentRoundIdx].targets[0] === "hiasan" || 
+                                   roundsData[currentRoundIdx].targets[0] === "penyepit") ? 3 : 2;
+
+                if (selectedSyllables.length < reqLength) {
+                    selectedSyllables.push(syl);
+                }
+            }
+
+            renderSyllablesGrid();
+            renderSelectedPreview();
+
+            const reqLen = (roundsData[currentRoundIdx].targets[0] === "kerusi" || 
+                            roundsData[currentRoundIdx].targets[0] === "penjual" || 
+                            roundsData[currentRoundIdx].targets[0] === "penimbang" || 
+                            roundsData[currentRoundIdx].targets[0] === "hiasan" || 
+                            roundsData[currentRoundIdx].targets[0] === "penyepit") ? 3 : 2;
+
+            if (selectedSyllables.length === reqLen) {
+                setTimeout(checkWordMatch, 250);
+            }
+        }
+
+        function renderSelectedPreview() {
+            const container = document.getElementById('selectedContainer');
+            container.innerHTML = '';
+
+            if (selectedSyllables.length === 0) {
+                container.innerHTML = `<span class="text-rose-400 italic font-bold text-xs sm:text-sm">Sila tekan suku kata di bawah...</span>`;
+                return;
+            }
+
+            selectedSyllables.forEach((syl, idx) => {
+                const badge = document.createElement('span');
+                const colorClass = (idx % 2 === 0) ? 'text-black' : 'text-rose-600';
+                badge.className = `bg-white ${colorClass} font-black text-2xl sm:text-3xl px-4 py-1 rounded-2xl shadow border-2 border-amber-300 animate-bounce`;
+                badge.innerText = syl.text;
+                container.appendChild(badge);
+            });
+        }
+
+        function checkWordMatch() {
+            const formedWord = selectedSyllables.map(s => s.text).join('').toLowerCase();
+            const currentTargets = roundsData[currentRoundIdx].targets;
+
+            if (currentTargets.includes(formedWord) && !roundFoundWords.includes(formedWord)) {
+                playSfx('correctWord');
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                }
+
+                roundFoundWords.push(formedWord);
+                selectedSyllables.forEach(s => usedSyllableIds.push(s.id));
+                selectedSyllables = [];
+
+                renderSyllablesGrid();
+                renderSelectedPreview();
+                renderFoundWords();
+
+                if (roundFoundWords.length === currentTargets.length) {
+                    setTimeout(() => {
+                        if (currentRoundIdx + 1 < roundsData.length) {
+                            currentRoundIdx++;
+                            initCoinGame();
+                        } else {
+                            showCakeShopModal();
+                        }
+                    }, 1000);
+                }
+
+            } else {
+                playSfx('wrongWord');
+                wrongAttemptsCount++;
+                selectedSyllables = [];
+                renderSyllablesGrid();
+                renderSelectedPreview();
+
+                if (wrongAttemptsCount >= 2) {
+                    setTimeout(showClueModal, 300);
+                }
+            }
+        }
+
+        function renderFoundWords() {
+            const list = document.getElementById('foundWordsList');
+            list.innerHTML = '';
+
+            if (roundFoundWords.length === 0) {
+                list.innerHTML = `<span class="text-xs text-rose-400 italic font-bold">Belum ada perkataan ditemui lagi.</span>`;
+                return;
+            }
+
+            roundFoundWords.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'bg-emerald-500 text-white font-black px-3 py-1.5 rounded-2xl flex items-center gap-1 text-sm sm:text-base border border-white shadow';
+                item.innerHTML = `<i class="fa-solid fa-check"></i> ${word.toUpperCase()}`;
+                list.appendChild(item);
+            });
+        }
+
+        /* 6. CLUE MODAL & FINAL CAKE SHOP LOGIC */
+        function showClueModal() {
+            const currentData = roundsData[currentRoundIdx];
+            const unFoundWord = currentData.targets.find(w => !roundFoundWords.includes(w)) || currentData.targets[0];
+            const imgUrl = currentData.images[unFoundWord];
+
+            document.getElementById('clueImg').src = imgUrl;
+            document.getElementById('clueModal').classList.remove('hidden');
+        }
+
+        function closeClueModal() {
+            playSfx('click');
+            wrongAttemptsCount = 0;
+            document.getElementById('clueModal').classList.add('hidden');
+        }
+
+        function showCakeShopModal() {
+            playSfx('correctWord');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            }
+            document.getElementById('cakeShopModal').classList.remove('hidden');
+        }
+
+        function buyCake(cakeName) {
+            playSfx('coinCatch');
+            const msg = document.getElementById('buySuccessMessage');
+            msg.innerText = `🎉 Tahniah! Anda telah berjaya membeli ${cakeName} dengan harga RM8!`;
+            msg.classList.remove('hidden');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function hideCakeShopModal() {
+            document.getElementById('cakeShopModal').classList.add('hidden');
+            document.getElementById('buySuccessMessage').classList.add('hidden');
+        }
+
+        function resetGame() {
+            playSfx('click');
+            currentRoundIdx = 0;
+            totalCoinsCollected = 0;
+            selectedSyllables = [];
+            roundFoundWords = [];
+            usedSyllableIds = [];
+            wrongAttemptsCount = 0;
+            document.getElementById('totalCoinText').innerText = `RM0`;
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('greetingAudioStep').classList.remove('hidden');
+            document.getElementById('startGameStep').classList.add('hidden');
+            document.getElementById('audioPlayingStatus').classList.add('hidden');
+            document.getElementById('coinGameScreen').classList.add('hidden');
+            document.getElementById('syllableGameScreen').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', initFloatingBackground);
+    </script>
+</body>
+</html>
